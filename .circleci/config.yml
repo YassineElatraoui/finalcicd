@@ -100,7 +100,9 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - Checkout:  install tar install gzip 
+      - Checkout:  
+            sudo apt install tar 
+            sudo apt install gzip 
          
           
       - run:
@@ -130,7 +132,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      - destroy_environement: on_fail 
+      
 
   deploy-frontend:
     docker:
