@@ -130,7 +130,7 @@ deploy-infrastructure:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            # Your code here
+            destroy-environment: on_fail
             exit 1
       - persist_to_workspace:
           root: ~/
