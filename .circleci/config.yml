@@ -100,9 +100,9 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - Checkout:
-          install tar
-          install gzip 
+      - Checkout:  install tar install gzip 
+         
+          
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -136,27 +136,50 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - Checkout:
-          install tar
-          install gzip 
-
+      - Checkout: 
+      - attach_workspace:
+          at: .
+          
       - run:
           name: Install dependencies
           command: |
-            # your code here
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install 
       - run:
           name: Get backend url
+          working_directory: ./frontend
           command: |
-            # your code here
+          
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
       - run:
           name: Deploy frontend objects
+          working_directory: ./frontend
           command: |
-            # your code here
-             export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}" > project/.circleci/ansible/inventory.txt
-      - destroy_environement: on_fail 
+            
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+          
+      - run:
+          name: Add tar
+          command: sudo apt install -y tar
+      - run:
+          name: Add gzip
+          command: sudo apt install -y gzip
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/dist
+      
+
+  
 
      
                           
