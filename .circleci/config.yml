@@ -100,28 +100,26 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - Checkout:  
-            sudo apt install tar 
-            sudo apt install gzip 
-         
-          
+      - Checkout:
+          install tar
+          install gzip 
       - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=your-tag \
-              --stack-name "finalcicd-backend-${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
+              #--tags project=your-tag \
+              # --stack-name "your back-end stack name with workflow id" \
+              # --parameter-overrides ID="your workflow id"  
               exit 1
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=your-tag \
-              --stack-name "finalcicd-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" 
+              #--tags project=your-tag \
+              # --stack-name "your front-end stack name with workflow id" \
+              # --parameter-overrides ID="your workflow id"  
               exit 1
       - run:
           name: Add back-end ip to ansible inventory
@@ -132,56 +130,33 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      
+      - destroy_environement: on_fail 
 
   deploy-frontend:
     docker:
       - image: amazon/aws-cli
     steps:
-      - Checkout: 
-      - attach_workspace:
-          at: .
-          
+      - Checkout:
+          install tar
+          install gzip 
+
       - run:
           name: Install dependencies
           command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install 
+            # your code here
       - run:
           name: Get backend url
-          working_directory: ./frontend
           command: |
-          
+            # your code here
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
-            cat frontend/.env
       - run:
           name: Deploy frontend objects
-          working_directory: ./frontend
           command: |
-            
-            cd frontend
-            npm install
-            npm run build
-            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-          
-      - run:
-          name: Add tar
-          command: sudo apt install -y tar
-      - run:
-          name: Add gzip
-          command: sudo apt install -y gzip
-      - persist_to_workspace:
-          root: .
-          paths:
-            - frontend/dist
-      
-
-  
+            # your code here
+             export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}" > project/.circleci/ansible/inventory.txt
+      - destroy_environement: on_fail 
 
      
                           
