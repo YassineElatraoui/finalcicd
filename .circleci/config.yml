@@ -103,8 +103,12 @@ deploy-infrastructure:
     steps:
       # Checkout code from git
       - checkout:
-               sudo apte install tar
-               sudo apte install gzip
+      - run:
+             name: install tar and gzip
+             command: |
+                sudo apt Update
+                sudo apt install tar
+                sudo apt install gzip
       - run:
           name: Ensure back-end infrastructure exists
           command: |
