@@ -102,15 +102,45 @@ deploy-infrastructure:
       - image: amazon/aws-cli
     steps:
       # Checkout code from git
-      - checkout:
+      - checkout
+      - attach_workspace:
+          at: .
       - run:
-             name: install tar and gzip
-             command: |
-                sudo apt Update
-                sudo apt install tar
-                sudo apt install gzip
+          name: install dependencies
+          command: |
+            sudo apt-get update && sudo apt-get install -yy less
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install 
       - run:
-          name: Ensure back-end infrastructure exists
+          name: Rebuild frontend with backend API Url
+          working_directory: ./frontend
+          command: |
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "API_URL = ${API_URL}"
+            echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
+            cat frontend/.env
+      - run:
+          name: Deploy frontend objects to S3
+          working_directory: ./frontend
+          command: |
+            cd frontend
+            npm install
+            npm run build
+            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+          # aws s3 cp ./dist "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+      - run:
+          name: Add tar
+          command: sudo apt install -y tar
+      - run:
+          name: Add gzip
+          command: sudo apt install -y gzip
+      - persist_to_workspace:
+          root: .
+          paths:
+            - frontend/dist
+
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
@@ -123,9 +153,9 @@ deploy-infrastructure:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              #--tags project=udapeople\
-              # --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              # --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --tags project=udapeople\
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
               exit 1
       - run:
           name: Add back-end ip to ansible inventory
@@ -137,6 +167,8 @@ deploy-infrastructure:
           paths:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure 
+
+
      
                           
 
