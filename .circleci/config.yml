@@ -236,5 +236,12 @@ workflows:
           filters:
             branches:
               only: [test-feature-branch]
+<<<<<<< HEAD
               
       
+||||||| 35684fb... add docker/cli run command and update circlleci
+      
+=======
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+>>>>>>> parent of 35684fb... add docker/cli run command and update circlleci
