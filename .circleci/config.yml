@@ -112,6 +112,7 @@ jobs:
             curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
             unzip awscliv2.zip
             sudo ./aws/install 
+            docker run --rm -it amazon/aws-cli command
       - run:
           name: Rebuild frontend with backend API Url
           working_directory: ./frontend
