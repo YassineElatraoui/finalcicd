@@ -169,6 +169,51 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure 
 
+  configure-infrastructure:
+    docker:
+      # Docker image here that supports Ansible
+      - image: ansible/ubuntu14.04-ansible
+    steps:
+      # Checkout code from git
+      - checkout
+
+      # Add ssh keys with fingerprint
+      - ssh keys: 49:9a:3c:04:40:5c:52:c6:ee:26:47:df:c2:74:e4:82
+      # attach workspace
+      - attach_workspace:
+          at: .
+     
+      - run:
+          name: Install tar and gzip
+          command: |
+            # Your code here
+            sudo apt update
+            sudo apt install tar
+            sudo apt install gzip
+            exit 1
+      - run:
+          name: Configure server
+          command: |
+            # Your code here
+            
+            touch ~/project/backend/.env
+            apt add openssh-client
+            apt add --update ansible
+            cat.env > inventory.txt
+            exit 1
+
+          name: "copy backend file"
+          become: true
+          copy:
+             
+            src: /root/project/backend
+            dest: /root
+            force: no
+          
+      # Here's where you will add some code to rollback on failure      
+
+      
+
 
      
                           
@@ -191,4 +236,6 @@ workflows:
           filters:
             branches:
               only: [test-feature-branch]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]        
       
